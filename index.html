@@ -4,84 +4,152 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Особистий Кабінет</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f0f0f5;
+      margin: 0;
+      padding: 0;
+    }
+
+    header {
+      background-color: #007bff;
+      color: white;
+      text-align: center;
+      padding: 10px 0;
+    }
+
+    .container {
+      max-width: 800px;
+      margin: 20px auto;
+      padding: 20px;
+      background: white;
+      border-radius: 10px;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    }
+
+    .container h1, .container h2 {
+      color: #333;
+      text-align: center;
+    }
+
+    form label {
+      display: block;
+      margin: 10px 0 5px;
+      font-weight: bold;
+      color: #333;
+    }
+
+    form input, form button {
+      width: 100%;
+      padding: 10px;
+      margin-bottom: 15px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      font-size: 16px;
+    }
+
+    form button {
+      background-color: #007bff;
+      color: white;
+      cursor: pointer;
+      border: none;
+    }
+
+    form button:hover {
+      background-color: #0056b3;
+    }
+
+    .schedule {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .schedule label {
+      margin: 0;
+    }
+
+    #logout {
+      background-color: red;
+      margin-top: 20px;
+    }
+  </style>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.12.1/firebase-app.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.12.1/firebase-auth.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.12.1/firebase-firestore.js"></script>
 </head>
 <body>
-  <div>
-    <button onclick="showSection('auth')">Авторизація</button>
-    <button onclick="showSection('profile')">Особистий Кабінет</button>
-    <button onclick="logout()">Вийти</button>
-  </div>
+  <header>
+    <h1>Особистий Кабінет</h1>
+  </header>
 
-  <!-- Авторизація -->
-  <div id="auth-section">
+  <div class="container" id="auth-section">
+    <h2>Авторизація</h2>
     <form id="login-form">
-      <input id="email" type="email" placeholder="Введіть email">
-      <input id="password" type="password" placeholder="Введіть пароль">
+      <label for="email">Електронна пошта:</label>
+      <input type="email" id="email" placeholder="Введіть email" required>
+      <label for="password">Пароль:</label>
+      <input type="password" id="password" placeholder="Введіть пароль" required>
       <button type="submit">Увійти</button>
     </form>
   </div>
 
-  <!-- Особистий Кабінет -->
-  <div id="profile-section" style="display: none;">
-    <h1>Особистий Кабінет</h1>
-    <label>Ім'я: <input id="name" type="text"></label><br>
-    <label>Стаж: <input id="experience" type="number" placeholder="Роки стажу"></label><br>
+  <div class="container" id="profile-section" style="display: none;">
+    <h2>Особистий Кабінет</h2>
+    <form>
+      <label for="name">Ім'я:</label>
+      <input type="text" id="name" placeholder="Введіть ім'я">
+      <label for="experience">Стаж (років):</label>
+      <input type="number" id="experience" placeholder="Вкажіть стаж">
 
-    <h2>Графік роботи:</h2>
-    <div>
-      <div>
-        <label>Понеділок:</label>
-        <input id="monday-start" type="time"> - 
-        <input id="monday-end" type="time">
+      <h2>Графік роботи:</h2>
+      <div class="schedule">
+        <div>
+          <label>Понеділок:</label>
+          <input type="time" id="monday-start"> - <input type="time" id="monday-end">
+        </div>
+        <div>
+          <label>Вівторок:</label>
+          <input type="time" id="tuesday-start"> - <input type="time" id="tuesday-end">
+        </div>
+        <div>
+          <label>Середа:</label>
+          <input type="time" id="wednesday-start"> - <input type="time" id="wednesday-end">
+        </div>
+        <div>
+          <label>Четвер:</label>
+          <input type="time" id="thursday-start"> - <input type="time" id="thursday-end">
+        </div>
+        <div>
+          <label>П'ятниця:</label>
+          <input type="time" id="friday-start"> - <input type="time" id="friday-end">
+        </div>
+        <div>
+          <label>Субота:</label>
+          <input type="time" id="saturday-start"> - <input type="time" id="saturday-end">
+        </div>
+        <div>
+          <label>Неділя:</label>
+          <input type="time" id="sunday-start"> - <input type="time" id="sunday-end">
+        </div>
       </div>
-      <div>
-        <label>Вівторок:</label>
-        <input id="tuesday-start" type="time"> - 
-        <input id="tuesday-end" type="time">
-      </div>
-      <div>
-        <label>Середа:</label>
-        <input id="wednesday-start" type="time"> - 
-        <input id="wednesday-end" type="time">
-      </div>
-      <div>
-        <label>Четвер:</label>
-        <input id="thursday-start" type="time"> - 
-        <input id="thursday-end" type="time">
-      </div>
-      <div>
-        <label>П'ятниця:</label>
-        <input id="friday-start" type="time"> - 
-        <input id="friday-end" type="time">
-      </div>
-      <div>
-        <label>Субота:</label>
-        <input id="saturday-start" type="time"> - 
-        <input id="saturday-end" type="time">
-      </div>
-      <div>
-        <label>Неділя:</label>
-        <input id="sunday-start" type="time"> - 
-        <input id="sunday-end" type="time">
-      </div>
-    </div>
 
-    <button onclick="saveProfile()">Зберегти</button>
+      <button type="button" onclick="saveProfile()">Зберегти</button>
+    </form>
+    <button id="logout" onclick="logout()">Вийти</button>
   </div>
 
   <script>
-    // Firebase Config
+    // Firebase конфігурація
     const firebaseConfig = {
       apiKey: "AIzaSyA-NH4SAHWVxtwup0xeAkCi7HQDA9cUXuE",
       authDomain: "wisdom-egg.firebaseapp.com",
       projectId: "wisdom-egg",
       storageBucket: "wisdom-egg.appspot.com",
       messagingSenderId: "877668230028",
-      appId: "1:877668230028:web:04b8aafed4547a03ac2ca9",
+      appId: "1:877668230028:web:04b8aafed4547a03ac2ca9"
     };
 
     firebase.initializeApp(firebaseConfig);
@@ -90,8 +158,8 @@
 
     // Показати секцію
     function showSection(section) {
-      document.querySelectorAll('div').forEach(div => div.style.display = 'none');
-      document.getElementById(`${section}-section`).style.display = 'block';
+      document.getElementById('auth-section').style.display = section === 'auth' ? 'block' : 'none';
+      document.getElementById('profile-section').style.display = section === 'profile' ? 'block' : 'none';
     }
 
     // Авторизація
@@ -103,10 +171,30 @@
       try {
         await auth.signInWithEmailAndPassword(email, password);
         showSection('profile');
+        loadProfile();
       } catch (error) {
-        alert('Помилка входу: ' + error.message);
+        alert('Помилка авторизації: ' + error.message);
       }
     });
+
+    // Завантаження профілю
+    async function loadProfile() {
+      const user = auth.currentUser;
+      if (!user) return;
+
+      const docRef = db.collection('users').doc(user.uid);
+      const doc = await docRef.get();
+
+      if (doc.exists) {
+        const data = doc.data();
+        document.getElementById('name').value = data.name || '';
+        document.getElementById('experience').value = data.experience || '';
+        for (let day of ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday']) {
+          document.getElementById(`${day}-start`).value = data.schedule?.[day]?.[0] || '';
+          document.getElementById(`${day}-end`).value = data.schedule?.[day]?.[1] || '';
+        }
+      }
+    }
 
     // Збереження профілю
     async function saveProfile() {
@@ -118,32 +206,32 @@
 
       const name = document.getElementById('name').value;
       const experience = document.getElementById('experience').value;
-      const schedule = {
-        monday: [document.getElementById('monday-start').value, document.getElementById('monday-end').value],
-        tuesday: [document.getElementById('tuesday-start').value, document.getElementById('tuesday-end').value],
-        wednesday: [document.getElementById('wednesday-start').value, document.getElementById('wednesday-end').value],
-        thursday: [document.getElementById('thursday-start').value, document.getElementById('thursday-end').value],
-        friday: [document.getElementById('friday-start').value, document.getElementById('friday-end').value],
-        saturday: [document.getElementById('saturday-start').value, document.getElementById('saturday-end').value],
-        sunday: [document.getElementById('sunday-start').value, document.getElementById('sunday-end').value],
-      };
-
-      try {
-        await db.collection('users').doc(user.uid).set({
-          name,
-          experience,
-          schedule,
-        });
-        alert('Профіль збережено!');
-      } catch (error) {
-        alert('Помилка збереження: ' + error.message);
+      const schedule = {};
+      for (let day of ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday']) {
+        schedule[day] = [
+          document.getElementById(`${day}-start`).value,
+          document.getElementById(`${day}-end`).value
+        ];
       }
+
+      await db.collection('users').doc(user.uid).set({ name, experience, schedule }, { merge: true });
+      alert('Профіль збережено!');
     }
 
     // Вихід
     function logout() {
       auth.signOut().then(() => showSection('auth'));
     }
+
+    // Стан авторизації
+    auth.onAuthStateChanged(user => {
+      if (user) {
+        showSection('profile');
+        loadProfile();
+      } else {
+        showSection('auth');
+      }
+    });
   </script>
 </body>
-  </html>
+</html>
