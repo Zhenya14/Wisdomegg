@@ -3,311 +3,147 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Авторизація та Профіль Бабусь та Дідусів</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      margin: 0;
-      padding: 0;
-      background-color: #f4f4f9;
-    }
-    .container {
-      max-width: 1200px;
-      margin: 0 auto;
-      padding: 20px;
-    }
-    h1, h2 {
-      text-align: center;
-      color: #333;
-      margin-bottom: 20px;
-    }
-    .specialist-list, .profile-form, .auth-form {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 20px;
-      justify-content: center;
-    }
-    .specialist-card, .profile-form, .auth-form {
-      border: 1px solid #ddd;
-      border-radius: 8px;
-      padding: 16px;
-      width: 300px;
-      text-align: center;
-      background-color: #fff;
-      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-    }
-    .specialist-photo {
-      width: 100%;
-      height: 150px;
-      object-fit: cover;
-      border-radius: 8px;
-    }
-    .specialist-card h3, .profile-form label, .auth-form label {
-      margin-top: 10px;
-      font-size: 18px;
-      color: #333;
-    }
-    .specialist-card p, .profile-form input, .profile-form textarea, .auth-form input {
-      margin: 5px 0;
-      font-size: 14px;
-      color: #555;
-    }
-    .status {
-      font-weight: bold;
-      color: green;
-    }
-    .status.not-accepting {
-      color: red;
-    }
-    button {
-      margin-top: 10px;
-      padding: 10px 20px;
-      background-color: #007bff;
-      color: #fff;
-      border: none;
-      border-radius: 5px;
-      cursor: pointer;
-    }
-    button:hover {
-      background-color: #0056b3;
-    }
-    .tabs {
-      display: flex;
-      justify-content: center;
-      margin-bottom: 20px;
-    }
-    .tabs button {
-      margin: 0 10px;
-      padding: 10px 20px;
-      background-color: #007bff;
-      color: #fff;
-      border: none;
-      border-radius: 5px;
-      cursor: pointer;
-    }
-    .tabs button.active {
-      background-color: #0056b3;
-    }
-  </style>
-  <!-- Include Timepicker CSS and JS -->
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/timepicker/1.3.5/jquery.timepicker.min.css">
+  <title>Особистий Кабінет</title>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/timepicker/1.3.5/jquery.timepicker.min.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.12.1/firebase-app.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.12.1/firebase-auth.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.12.1/firebase-firestore.js"></script>
-
-  <script>
-    // Config Firebase
-    const firebaseConfig = {
-  apiKey: "AIzaSyA-NH4SAHWVxtwup0xeAkCi7HQDA9cUXuE",
-  authDomain: "wisdom-egg.firebaseapp.com",
-  projectId: "wisdom-egg",
-  storageBucket: "wisdom-egg.firebasestorage.app",
-  messagingSenderId: "877668230028",
-  appId: "1:877668230028:web:04b8aafed4547a03ac2ca9",
-  measurementId: "G-6ZCRS9BP9B"
-};
-
-    firebase.initializeApp(firebaseConfig);
-
-    $(document).ready(function() {
-      // Ініціалізація Timepicker
-      $('.timepicker').timepicker({
-        timeFormat: 'HH:mm',
-        interval: 30,
-        minTime: '08:00',
-        maxTime: '18:00',
-        startTime: '08:00',
-        dynamic: false,
-        dropdown: true,
-        scrollbar: true
-      });
-
-      // Авторизація
-      const auth = firebase.auth();
-
-      $('#login-form').submit(async function(e) {
-        e.preventDefault();
-        const email = $('#email').val();
-        const password = $('#password').val();
-
-        try {
-          const userCredential = await auth.signInWithEmailAndPassword(email, password);
-          console.log('User signed in:', userCredential.user);
-          showSection('profile');
-          loadUserProfile();
-        } catch (error) {
-          console.error('Error signing in:', error.message);
-          alert('Помилка авторизації. Спробуйте ще раз.');
-        }
-      });
-
-      $('#logout-btn').click(function() {
-        auth.signOut().then(() => {
-          console.log('User signed out');
-          showSection('auth');
-        }).catch((error) => {
-          console.error('Error signing out:', error.message);
-        });
-      });
-
-      auth.onAuthStateChanged(user => {
-        if (user) {
-          showSection('profile');
-        } else {
-          showSection('auth');
-        }
-      });
-
-      // Завантаження профілю
-      async function loadUserProfile() {
-        const user = auth.currentUser;
-        if (user) {
-          const docRef = firebase.firestore().doc(`users/${user.uid}`);
-          const docSnap = await docRef.get();
-
-          if (docSnap.exists) {
-            const data = docSnap.data();
-            document.getElementById("name").value = data.name || "";
-            document.getElementById("experience").value = data.experience || 0;
-            document.getElementById("schedule").value = JSON.stringify(data.schedule || {}, null, 2);
-          }
-        }
-      }
-
-      // Збереження профілю
-      async function saveProfile() {
-        const user = auth.currentUser;
-        if (!user) {
-          alert("Спочатку увійдіть у свій профіль!");
-          return;
-        }
-
-        const name = document.getElementById("name").value;
-        const experience = parseInt(document.getElementById("experience").value, 10);
-        const scheduleInput = document.getElementById("schedule").value;
-
-        let schedule = {};
-        try {
-          schedule = JSON.parse(scheduleInput);
-        } catch (e) {
-          alert("Введіть правильний формат графіку.");
-          return;
-        }
-
-        const docRef = firebase.firestore().doc(`users/${user.uid}`);
-        await docRef.set({ name, experience, schedule }, { merge: true });
-        alert("Дані збережено!");
-      }
-
-      // Завантаження списку бабусь і дідусів
-      async function loadSpecialists() {
-        const specialistsRef = firebase.firestore().collection('users');
-        const querySnapshot = await specialistsRef.get();
-        
-        $('#specialists-section').empty(); // Очистити список
-        
-        querySnapshot.forEach(doc => {
-          const data = doc.data();
-          const name = data.name || "Ім'я не вказано";
-          const experience = data.experience || "Стаж не вказано";
-          const schedule = data.schedule || {};
-          let scheduleText = "";
-
-          for (const [day, times] of Object.entries(schedule)) {
-            scheduleText += `${day.charAt(0).toUpperCase() + day.slice(1)}: ${times.join(', ')}<br>`;
-          }
-
-          const statusClass = scheduleText ? "" : "not-accepting";
-
-          $('#specialists-section').append(`
-            <div class="specialist-card">
-              <h3>${name}</h3>
-              <p>Стаж: ${experience} років</p>
-              <p class="status ${statusClass}">${scheduleText || "Не приймає"}</p>
-            </div>
-          `);
-        });
-      }
-
-      // Перемикання між секціями
-      function showSection(section) {
-        $(".tabs button").removeClass("active");
-        $("#" + section + "-tab").addClass("active");
-        $(".section").hide();
-        $("#" + section + "-section").show();
-      }
-
-      // Завантажити спеціалістів
-      loadSpecialists();
-    });
-  </script>
 </head>
 <body>
-  <div class="tabs">
-    <button id="auth-tab" class="active" onclick="showSection('auth')">Авторизація</button>
-    <button id="profile-tab" onclick="showSection('profile')">Особистий Кабінет</button>
-    <button id="specialists-tab" onclick="showSection('specialists')">Головна</button>
-    <button id="logout-btn" style="display: none;">Вийти</button>
+  <div>
+    <button onclick="showSection('auth')">Авторизація</button>
+    <button onclick="showSection('profile')">Особистий Кабінет</button>
+    <button onclick="logout()">Вийти</button>
   </div>
 
-  <div class="container">
-    <!-- Авторизація -->
-    <div id="auth-section" class="auth-form">
-      <h2>Авторизація</h2>
-      <form id="login-form">
-        <label for="email">Електронна пошта:</label>
-        <input id="email" type="email" placeholder="Введіть електронну пошту">
-        <label for="password">Пароль:</label>
-        <input id="password" type="password" placeholder="Введіть пароль">
-        <button type="submit">Увійти</button>
-      </form>
-    </div>
+  <!-- Авторизація -->
+  <div id="auth-section">
+    <form id="login-form">
+      <input id="email" type="email" placeholder="Введіть email">
+      <input id="password" type="password" placeholder="Введіть пароль">
+      <button type="submit">Увійти</button>
+    </form>
+  </div>
 
-    <!-- Особистий Кабінет -->
-    <div id="profile-section" style="display: none;" class="profile-form section">
-      <h2>Особистий Кабінет</h2>
-      <label for="name">Ім'я:</label>
-      <input id="name" type="text" placeholder="Введіть своє ім'я">
-      <label for="experience">Стаж:</label>
-      <input id="experience" type="number" placeholder="Введіть свій стаж">
-      <label for="schedule">Графік роботи:</label>
-      <div id="schedule-inputs">
-        <div class="day-schedule">
-          <label for="monday">Понеділок:</label>
-          <input class="timepicker" id="monday-start" type="time">
-          <input class="timepicker" id="monday-end" type="time">
-        </div>
-        <div class="day-schedule">
-          <label for="tuesday">Вівторок:</label>
-          <input class="timepicker" id="tuesday-start" type="time">
-          <input class="timepicker" id="tuesday-end" type="time">
-        </div>
-        <div class="day-schedule">
-          <label for="wednesday">Середа:</label>
-          <input class="timepicker" id="wednesday-start" type="time">
-          <input class="timepicker" id="wednesday-end" type="time">
-        </div>
-        <div class="day-schedule">
-          <label for="thursday">Четвер:</label>
-          <input class="timepicker" id="thursday-start" type="time">
-          <input class="timepicker" id="thursday-end" type="time">
-        </div>
-        <div class="day-schedule">
-          <label for="friday">П'ятниця:</label>
-          <input class="timepicker" id="friday-start" type="time">
-          <input class="timepicker" id="friday-end" type="time">
-        </div>
+  <!-- Особистий Кабінет -->
+  <div id="profile-section" style="display: none;">
+    <h1>Особистий Кабінет</h1>
+    <label>Ім'я: <input id="name" type="text"></label><br>
+    <label>Стаж: <input id="experience" type="number" placeholder="Роки стажу"></label><br>
+
+    <h2>Графік роботи:</h2>
+    <div>
+      <div>
+        <label>Понеділок:</label>
+        <input id="monday-start" type="time"> - 
+        <input id="monday-end" type="time">
       </div>
-      <button onclick="saveProfile()">Зберегти</button>
+      <div>
+        <label>Вівторок:</label>
+        <input id="tuesday-start" type="time"> - 
+        <input id="tuesday-end" type="time">
+      </div>
+      <div>
+        <label>Середа:</label>
+        <input id="wednesday-start" type="time"> - 
+        <input id="wednesday-end" type="time">
+      </div>
+      <div>
+        <label>Четвер:</label>
+        <input id="thursday-start" type="time"> - 
+        <input id="thursday-end" type="time">
+      </div>
+      <div>
+        <label>П'ятниця:</label>
+        <input id="friday-start" type="time"> - 
+        <input id="friday-end" type="time">
+      </div>
+      <div>
+        <label>Субота:</label>
+        <input id="saturday-start" type="time"> - 
+        <input id="saturday-end" type="time">
+      </div>
+      <div>
+        <label>Неділя:</label>
+        <input id="sunday-start" type="time"> - 
+        <input id="sunday-end" type="time">
+      </div>
     </div>
 
-    <!-- Список спеціалістів -->
-    <div id="specialists-section" class="specialist-list section">
-      <h2>Бабусі та Дідусі</h2>
-      <!-- Профілі будуть завантажені сюди -->
-    </div>
+    <button onclick="saveProfile()">Зберегти</button>
   </div>
+
+  <script>
+    // Firebase Config
+    const firebaseConfig = {
+      apiKey: "AIzaSyA-NH4SAHWVxtwup0xeAkCi7HQDA9cUXuE",
+      authDomain: "wisdom-egg.firebaseapp.com",
+      projectId: "wisdom-egg",
+      storageBucket: "wisdom-egg.appspot.com",
+      messagingSenderId: "877668230028",
+      appId: "1:877668230028:web:04b8aafed4547a03ac2ca9",
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const db = firebase.firestore();
+
+    // Показати секцію
+    function showSection(section) {
+      document.querySelectorAll('div').forEach(div => div.style.display = 'none');
+      document.getElementById(`${section}-section`).style.display = 'block';
+    }
+
+    // Авторизація
+    document.getElementById('login-form').addEventListener('submit', async function(e) {
+      e.preventDefault();
+      const email = document.getElementById('email').value;
+      const password = document.getElementById('password').value;
+
+      try {
+        await auth.signInWithEmailAndPassword(email, password);
+        showSection('profile');
+      } catch (error) {
+        alert('Помилка входу: ' + error.message);
+      }
+    });
+
+    // Збереження профілю
+    async function saveProfile() {
+      const user = auth.currentUser;
+      if (!user) {
+        alert('Ви не авторизовані!');
+        return;
+      }
+
+      const name = document.getElementById('name').value;
+      const experience = document.getElementById('experience').value;
+      const schedule = {
+        monday: [document.getElementById('monday-start').value, document.getElementById('monday-end').value],
+        tuesday: [document.getElementById('tuesday-start').value, document.getElementById('tuesday-end').value],
+        wednesday: [document.getElementById('wednesday-start').value, document.getElementById('wednesday-end').value],
+        thursday: [document.getElementById('thursday-start').value, document.getElementById('thursday-end').value],
+        friday: [document.getElementById('friday-start').value, document.getElementById('friday-end').value],
+        saturday: [document.getElementById('saturday-start').value, document.getElementById('saturday-end').value],
+        sunday: [document.getElementById('sunday-start').value, document.getElementById('sunday-end').value],
+      };
+
+      try {
+        await db.collection('users').doc(user.uid).set({
+          name,
+          experience,
+          schedule,
+        });
+        alert('Профіль збережено!');
+      } catch (error) {
+        alert('Помилка збереження: ' + error.message);
+      }
+    }
+
+    // Вихід
+    function logout() {
+      auth.signOut().then(() => showSection('auth'));
+    }
+  </script>
 </body>
-</html>
+  </html>
